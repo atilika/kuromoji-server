@@ -50,7 +50,7 @@
     border-color: #ffffff;
     display: table-cell;
     vertical-align: middle;
-    cursor: default;
+    cursor: pointer;
 }
 
 #kuromoji-mode {
