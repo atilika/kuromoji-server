@@ -20,12 +20,12 @@
 	<repositories>
 		<repository>
 			<id>ATILIKA Open Source Snapshots</id>
-			<url>http://atilika.org/nexus/content/repositories/atilika-snapshots/</url>
-		</repository>
+            <url>http://atilika.org/nexus/content/repositories/atilika-snapshots/</url>
+        </repository>
 	</repositories>
 
 	<build>
-		<finalName>kuromoji</finalName>
+    	<finalName>kuromoji</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -41,7 +41,7 @@
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>maven-jetty-plugin</artifactId>
 				<configuration>
-					<contextPath>/kuromoji</contextPath>
+    				<contextPath>/kuromoji</contextPath>
 					<scanIntervalSeconds>10</scanIntervalSeconds>
 					<stopKey>foo</stopKey>
 					<stopPort>9966</stopPort>
@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>org.atilika.kuromoji</groupId>
 			<artifactId>kuromoji</artifactId>
-			<version>0.7.4-20110202.055847-7</version>
+			<version>0.7.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.wink</groupId>
