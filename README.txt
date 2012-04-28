@@ -14,5 +14,11 @@ Build and run kuromoji-server as follows:
   
   type Japanese text and press RET
 
-  
-  
+
+Note that the dot command from Graphviz (http://www.graphviz.org/) is required
+for Viterbi visualisation.
+
+Best wishes,
+
+Christian Moen
+christian@atilika.com
