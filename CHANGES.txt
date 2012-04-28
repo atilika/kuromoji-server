@@ -1,0 +1,18 @@
+CHANGES.txt
+===========
+
+Snapshot 0.2 (2012-04-28)
+
+* Added support for Viterbi visualisation
+  - Needs SVG browser support and dot/Graphviz on the server
+
+* Added HTTP POST support
+
+* Uses Bootstrap 2.0.3 for the user interface
+
+* Various cleanups and improvements
+
+
+Release 0.1 (2011-?-?)
+
+* Initial version
