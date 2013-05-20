@@ -8,7 +8,7 @@
     <name>Kuromoji Japanese Morphological Analyzer Demo</name>
 
     <organization>
-        <name>ATILIKA</name>
+        <name>Atilika</name>
         <url>http://www.atilika.org</url>
     </organization>
 
@@ -19,8 +19,8 @@
 
     <repositories>
         <repository>
-            <id>ATILIKA Open Source Snapshots</id>
-            <url>http://atilika.org/nexus/content/repositories/atilika-snapshots/</url>
+            <id>Atilika Open Source Snapshots</id>
+            <url>http://atilika.org/nexus/content/repositories/atilika/</url>
         </repository>
     </repositories>
 
