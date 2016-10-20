@@ -14,26 +14,33 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package org.atilika.kuromoji.server;
+package com.atilika.kuromoji.server;
 
-import java.io.*;
-import java.net.URLDecoder;
-import java.util.List;
-import java.util.Scanner;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.atilika.kuromoji.DebugTokenizer;
-import org.atilika.kuromoji.Token;
-import org.atilika.kuromoji.Tokenizer;
-import org.atilika.kuromoji.Tokenizer.Mode;
+import com.atilika.kuromoji.TokenizerBase;
+import com.atilika.kuromoji.ipadic.Token;
+import com.atilika.kuromoji.ipadic.Tokenizer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.util.List;
+import java.util.Scanner;
 
 @Path("/tokenizer")
 public class KuromojiServer {
@@ -46,13 +53,11 @@ public class KuromojiServer {
 
     private static final Logger log = LoggerFactory.getLogger(KuromojiServer.class);
 
-    private static Tokenizer normalTokenizer = Tokenizer.builder().mode(Mode.NORMAL).build();
+    private static Tokenizer normalTokenizer = new Tokenizer.Builder().mode(TokenizerBase.Mode.NORMAL).build();
 
-    private static Tokenizer searchTokenizer = Tokenizer.builder().mode(Mode.SEARCH).build();
+    private static Tokenizer searchTokenizer = new Tokenizer.Builder().mode(TokenizerBase.Mode.SEARCH).build();
 
-    private static Tokenizer extendedTokenizer = Tokenizer.builder().mode(Mode.EXTENDED).build();
-
-    private static DebugTokenizer debugTokenizer = DebugTokenizer.builder().mode(Mode.NORMAL).build();
+    private static Tokenizer extendedTokenizer = new Tokenizer.Builder().mode(TokenizerBase.Mode.EXTENDED).build();
 
     @GET
     @Path("/tokenize")
@@ -60,7 +65,7 @@ public class KuromojiServer {
     public Response tokenizeGet(@QueryParam("text") String text,
                                 @DefaultValue("utf-8") @QueryParam("encoding") String encoding,
                                 @DefaultValue("0") @QueryParam("mode") int mode)
-    throws JSONException, UnsupportedEncodingException {
+        throws JSONException, IOException {
         log.debug("GET request with text: " + text + ", encoding: " + encoding + ", mode: " + mode);
         return Response.ok(tokenize(text, encoding, mode)).build();
     }
@@ -77,21 +82,21 @@ public class KuromojiServer {
         return Response.ok(tokenize(text, encoding, mode)).build();
     }
 
-    private JSONObject tokenize(String text, String encoding, int mode) throws JSONException, UnsupportedEncodingException {
+    private JSONObject tokenize(String text, String encoding, int mode) throws JSONException, IOException {
         text = URLDecoder.decode(text, encoding);
         log.info("Tokenizing text " + text + " using mode " + mode);
-        
+
         if (mode == 3) {
             text = trimInputText(text, MAX_INPUT_VITERBI_LENGTH);
         } else {
             text = trimInputText(text, MAX_INPUT_LENGTH);
         }
-        
+
         Tokenizer tokenizer = getTokenizer(mode);
         List<Token> tokens = tokenizer.tokenize(text);
         return makeResponse(text, mode, tokens);
     }
-    
+
     private String trimInputText(String text, int maxLength) {
         int length = text.length();
         if (length > maxLength) {
@@ -101,24 +106,24 @@ public class KuromojiServer {
         return text;
     }
 
-    private JSONObject makeResponse(String text, int mode, List<Token> tokens) throws JSONException {
+    private JSONObject makeResponse(String text, int mode, List<Token> tokens) throws JSONException, IOException {
 
         JSONObject json = new JSONObject();
         JSONArray jsonTokens = new JSONArray();
 
         for (Token token : tokens) {
             JSONObject jsonToken = new JSONObject();
-            jsonToken.put("surface", token.getSurfaceForm());
+            jsonToken.put("surface", token.getSurface());
             jsonToken.put("base", token.getBaseForm());
-            jsonToken.put("pos", token.getPartOfSpeech());
+            jsonToken.put("pos", token.getPartOfSpeechLevel1() + "," + token.getPartOfSpeechLevel2() + "," + token.getPartOfSpeechLevel3() + "," + token.getPartOfSpeechLevel4());
 
-            if (token.isUnknown()) {
+            if (!token.isKnown()) {
                 jsonToken.put("reading", "?");
             } else {
                 jsonToken.put("reading", token.getReading());
             }
 
-            if (token.isUser() || token.isUnknown()) {
+            if (token.isUser() || !token.isKnown()) {
                 jsonToken.put("pronunciation", "?");
             } else {
                 assert token.getAllFeaturesArray().length == 9;
@@ -131,7 +136,10 @@ public class KuromojiServer {
         json.put("mode", mode);
 
         if (mode == 3) {
-            json.put("viterbi", getViterbiSVG(debugTokenizer.debugTokenize(text)));
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            normalTokenizer.debugTokenize(output, text);
+            output.close();
+            json.put("viterbi", getViterbiSVG(output.toString("UTF-8")));
         }
         return json;
     }
