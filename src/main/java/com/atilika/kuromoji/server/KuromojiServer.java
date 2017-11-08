@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Scanner;
 
 @Path("/tokenizer")
+@Produces(MediaType.APPLICATION_JSON)
 public class KuromojiServer {
 
     private static final String DOT_COMMAND = "dot -Tsvg";
@@ -61,7 +62,6 @@ public class KuromojiServer {
 
     @GET
     @Path("/tokenize")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response tokenizeGet(@QueryParam("text") String text,
                                 @DefaultValue("utf-8") @QueryParam("encoding") String encoding,
                                 @DefaultValue("0") @QueryParam("mode") int mode)
@@ -73,12 +73,24 @@ public class KuromojiServer {
 
     @POST
     @Path("/tokenize")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response tokenizePost(@FormParam("text") String text,
                                  @DefaultValue("utf-8") @FormParam("encoding") String encoding,
                                  @DefaultValue("0") @FormParam("mode") int mode) throws JSONException, IOException {
         log.debug("POST request with text: " + text + ", encoding: " + encoding + ", mode: " + mode);
+        return Response.ok(tokenize(text, encoding, mode)).build();
+    }
+
+    @POST
+    @Path("/tokenize")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response tokenizeJson(JSONObject json) throws JSONException, IOException {
+        String text = json.getString("text");
+        String encoding = json.optString("encoding", "utf-8");
+        int mode = json.optInt("mode", 0);
+
+        log.debug("POST request with text: " + text + ", encoding: " + encoding + ", mode: " + mode);
+
         return Response.ok(tokenize(text, encoding, mode)).build();
     }
 
